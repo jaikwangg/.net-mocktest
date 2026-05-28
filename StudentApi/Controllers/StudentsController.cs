@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using StudentApi.Dtos;
 using StudentApi.Services;
 
@@ -6,6 +7,7 @@ namespace StudentApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] // ต้อง Login ก่อนถึงจะใช้ Controller นี้ได้
     public class StudentsController : ControllerBase
     {
         private readonly IStudentService _studentService;
@@ -31,6 +33,7 @@ namespace StudentApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")] // เฉพาะ Admin เท่านั้นที่เพิ่มข้อมูลได้
         public async Task<ActionResult<StudentReadDto>> PostStudent(StudentCreateDto studentDto)
         {
             var createdStudent = await _studentService.CreateStudentAsync(studentDto);
@@ -38,6 +41,7 @@ namespace StudentApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutStudent(int id, StudentUpdateDto studentDto)
         {
             var success = await _studentService.UpdateStudentAsync(id, studentDto);
@@ -46,6 +50,7 @@ namespace StudentApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
             var success = await _studentService.DeleteStudentAsync(id);

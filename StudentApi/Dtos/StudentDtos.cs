@@ -19,4 +19,17 @@ namespace StudentApi.Dtos
         public string Name { get; set; } = "";
         public double Score { get; set; }
     }
+}namespace StudentApi.Dtos
+{
+    public class LoginDto
+    {
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+
+    public class UserDto
+    {
+        public string Username { get; set; } = "";
+        public string Token { get; set; } = "";
+    }
 }
