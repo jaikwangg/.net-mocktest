@@ -5,10 +5,17 @@ using Microsoft.IdentityModel.Tokens;
 using StudentApi.Data;
 using StudentApi.Services;
 using StudentApi.Dtos;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+// Add FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=students.db"));
 
@@ -59,14 +66,20 @@ app.MapGet("/api/departments/{id}", async (int id, IDepartmentService service) =
     return item is not null ? Results.Ok(item) : Results.NotFound();
 });
 
-app.MapPost("/api/departments", async (DepartmentCreateDto dto, IDepartmentService service) => 
+app.MapPost("/api/departments", async (DepartmentCreateDto dto, IDepartmentService service, IValidator<DepartmentCreateDto> validator) => 
 {
+    var validationResult = await validator.ValidateAsync(dto);
+    if (!validationResult.IsValid) return Results.ValidationProblem(validationResult.ToDictionary());
+
     var created = await service.CreateAsync(dto);
     return Results.Created($"/api/departments/{created.Id}", created);
 });
 
-app.MapPut("/api/departments/{id}", async (int id, DepartmentCreateDto dto, IDepartmentService service) => 
+app.MapPut("/api/departments/{id}", async (int id, DepartmentCreateDto dto, IDepartmentService service, IValidator<DepartmentCreateDto> validator) => 
 {
+    var validationResult = await validator.ValidateAsync(dto);
+    if (!validationResult.IsValid) return Results.ValidationProblem(validationResult.ToDictionary());
+
     var success = await service.UpdateAsync(id, dto);
     return success ? Results.NoContent() : Results.NotFound();
 });
