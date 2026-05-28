@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StudentApi.Data;
 using StudentApi.Services;
+using StudentApi.Dtos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -43,8 +45,39 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
+// === Minimal APIs (Map Style) for Departments ===
+
+app.MapGet("/api/departments", async (IDepartmentService service) => 
+    Results.Ok(await service.GetAllAsync()));
+
+app.MapGet("/api/departments/{id}", async (int id, IDepartmentService service) => 
+{
+    var item = await service.GetByIdAsync(id);
+    return item is not null ? Results.Ok(item) : Results.NotFound();
+});
+
+app.MapPost("/api/departments", async (DepartmentCreateDto dto, IDepartmentService service) => 
+{
+    var created = await service.CreateAsync(dto);
+    return Results.Created($"/api/departments/{created.Id}", created);
+});
+
+app.MapPut("/api/departments/{id}", async (int id, DepartmentCreateDto dto, IDepartmentService service) => 
+{
+    var success = await service.UpdateAsync(id, dto);
+    return success ? Results.NoContent() : Results.NotFound();
+});
+
+app.MapDelete("/api/departments/{id}", async (int id, IDepartmentService service) => 
+{
+    var success = await service.DeleteAsync(id);
+    return success ? Results.NoContent() : Results.NotFound();
+});
+
+// Seed Data
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

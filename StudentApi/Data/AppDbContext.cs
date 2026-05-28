@@ -10,5 +10,6 @@ namespace StudentApi.Data
         public DbSet<Student> Students => Set<Student>();
         public DbSet<User> Users => Set<User>();
         public DbSet<Course> Courses => Set<Course>();
+        public DbSet<Department> Departments => Set<Department>();
     }
 }
