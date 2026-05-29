@@ -57,5 +57,29 @@ namespace StudentApi.Controllers
             if (!success) return NotFound();
             return NoContent();
         }
+
+        // --- New LINQ Endpoints ---
+
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<StudentReadDto>>> SearchStudents([FromQuery] string name)
+        {
+            var results = await _studentService.SearchByNameAsync(name);
+            return Ok(results);
+        }
+
+        [HttpGet("top")]
+        public async Task<ActionResult<IEnumerable<StudentReadDto>>> GetTopPerformers([FromQuery] int count = 3)
+        {
+            var results = await _studentService.GetTopPerformersAsync(count);
+            return Ok(results);
+        }
+
+        [HttpGet("stats")]
+        [AllowAnonymous] // ให้ทุกคนดูสถิติได้
+        public async Task<ActionResult<object>> GetStats()
+        {
+            var stats = await _studentService.GetGradeStatisticsAsync();
+            return Ok(stats);
+        }
     }
 }

@@ -7,10 +7,16 @@ using StudentApi.Services;
 using StudentApi.Dtos;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using StudentApi.Middleware;
+using AutoMapper;
+using StudentApi.Data.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
 
 // Add FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
@@ -42,6 +48,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Use Custom Global Exception Middleware
+app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -93,13 +102,11 @@ app.MapDelete("/api/departments/{id}", async (int id, IDepartmentService service
 // Seed Data
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
-    if (!db.Users.Any())
-    {
-        db.Users.Add(new StudentApi.Models.User { Username = "admin", PasswordHash = "123456", Role = "Admin" });
-        db.SaveChanges();
-    }
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    
+    context.Database.Migrate();
+    DbSeeder.Seed(context);
 }
 
 app.Run();
