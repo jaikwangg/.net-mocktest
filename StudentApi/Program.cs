@@ -15,6 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -51,6 +62,8 @@ var app = builder.Build();
 
 // Use Custom Global Exception Middleware
 app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseCors("AllowReactApp");
 
 if (app.Environment.IsDevelopment())
 {
